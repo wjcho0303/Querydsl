@@ -66,5 +66,29 @@ public class QuerydslBasicTest {
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
 
+    @Test
+    @DisplayName("검색조건 쿼리")
+    public void search() {
+        Member findMember = jpaQueryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member2")
+                        .and(member.age.between(10, 30)))
+                .fetchOne();
 
+        assertThat(findMember.getUsername()).isEqualTo("member2");
+    }
+
+    @Test
+    @DisplayName("AND -> ,")
+    public void searchAndParam() {
+        Member findMember = jpaQueryFactory
+                .selectFrom(member)
+                .where(
+                        member.username.eq("member2"),  // WHERE 내부의 AND를 콤마(,)로 처리할 수도 있다.
+                        member.age.eq(20)
+                )
+                .fetchOne();
+
+        assertThat(findMember.getUsername()).isEqualTo("member2");
+    }
 }
