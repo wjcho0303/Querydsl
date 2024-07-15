@@ -24,8 +24,9 @@ class QuerydslApplicationTests {
 		em.persist(hello);
 
 		JPAQueryFactory query = new JPAQueryFactory(em);
-		QHello qHello = new QHello("h");
-
+//		QHello qHello = new QHello("h");
+		QHello qHello = QHello.hello;	// Q 클래스 인스턴스를 나타내는 정적 상수를 사용
+		
 		Hello result = query
 				.selectFrom(qHello)
 				.fetchOne();
