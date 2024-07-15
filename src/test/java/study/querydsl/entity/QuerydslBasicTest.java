@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
+import static study.querydsl.entity.QMember.*;
 
 @SpringBootTest
 @Transactional
@@ -56,12 +57,10 @@ public class QuerydslBasicTest {
     @Test
     @DisplayName("Querydsl을 통한 조회")
     public void startQuerydsl() {
-        QMember m = new QMember("m");
-
         Member findMember = jpaQueryFactory
-                .select(m)
-                .from(m)
-                .where(m.username.eq("member1"))    // 파라미터 바인딩 자동 처리됨
+                .select(member)
+                .from(member)
+                .where(member.username.eq("member1"))    // 파라미터 바인딩 자동 처리됨
                 .fetchOne();
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
