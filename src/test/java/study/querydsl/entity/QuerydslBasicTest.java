@@ -1,5 +1,6 @@
 package study.querydsl.entity;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
@@ -9,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.*;
@@ -91,4 +94,56 @@ public class QuerydslBasicTest {
 
         assertThat(findMember.getUsername()).isEqualTo("member2");
     }
+
+    @Test
+    public void resultFetch() {
+
+        // .fetch()
+        List<Member> members = jpaQueryFactory
+                .selectFrom(member)
+                .fetch();
+
+
+        // .fetchOne()
+        // NonUniqueResultException 발생으로 인해 주석 처리
+//        Member member1 = jpaQueryFactory
+//                .selectFrom(member)
+//                .fetchOne();
+//        System.out.println("member1 = " + member1);
+
+
+        // .fetchFirst() = .limit(1).fetchOne()
+        Member member2 = jpaQueryFactory
+                .selectFrom(member)
+                .fetchFirst();
+        System.out.println("member2 = " + member2);
+
+
+        // .fetchFirst() = .limit(1).fetchOne()
+        Member member3 = jpaQueryFactory
+                .selectFrom(member)
+                .limit(1)
+                .fetchOne();
+        System.out.println("member3 = " + member3);
+
+
+        // .fetchResults()
+        QueryResults<Member> results = jpaQueryFactory
+                .selectFrom(member)
+                .fetchResults();
+        System.out.println("results = " + results);
+
+        System.out.println("results.getResults(); = " + results.getResults());
+        System.out.println("results.getTotal() = " + results.getTotal());
+        System.out.println("results.getOffset() = " + results.getOffset());
+        System.out.println("results.getLimit() = " + results.getLimit());
+
+
+        // .fetchCount()
+        long total = jpaQueryFactory
+                .selectFrom(member)
+                .fetchCount();
+        System.out.println("total = " + total);
+    }
+
 }
