@@ -4,6 +4,8 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -248,5 +250,114 @@ public class QuerydslBasicTest {
 
         assertThat(teamB.get(team.name)).isEqualTo("teamB");
         assertThat(teamB.get(member.age.avg())).isEqualTo((double)(30+40)/2);
+    }
+
+    /**
+     * 팀 A에 소속된 모든 회원 조회하기
+     */
+    @Test
+    @DisplayName("조인")
+    public void join() {
+        List<Member> result = jpaQueryFactory
+                .selectFrom(member)
+                .join(member.team, team)
+                .where(team.name.eq("teamA"))
+                .fetch();
+
+        assertThat(result)
+                .extracting("username")
+                .containsExactly("member1", "member2");
+    }
+
+    /**
+     * 세타 조인
+     * 회원의 이름이 팀 이름과 동일한 회원을 조회하기 (즉 사람의 이름이 팀 이름과 똑같은 케이스들이다.)
+     */
+    @Test
+    @DisplayName("세타 조인")
+    public void thetaJoin() {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Member> result = jpaQueryFactory
+                .select(member)
+                .from(member, team)
+                .where(member.username.eq(team.name))
+                .fetch();
+
+        assertThat(result)
+                .extracting("username")
+                .containsExactly("teamA", "teamB");
+    }
+
+    /**
+     * 회원과 팀을 조인하면서, 팀 이름이 "teamA"인 팀만 조인, 회원은 모두 조회
+     * JPQL: select m, t from Member m left join m.team on t.name = 'teamA'
+     */
+    @Test
+    @DisplayName("ON절 활용 - 필터링")
+    public void join_on_filtering() {
+        List<Tuple> result = jpaQueryFactory
+                .select(member, team)
+                .from(member)
+                .rightJoin(member.team, team).on(team.name.eq("teamA"))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    @Test
+    @DisplayName("ON을 사용한 세타 조인")
+    public void join_on_thetaJoin() {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Tuple> result = jpaQueryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team).on(member.username.eq(team.name))    // member.team 이 아니라 team을 조인
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
+    @Test
+    @DisplayName("페치 조인이 없을 때")
+    public void without_fetchJoin() {
+        em.flush();
+        em.clear();
+
+        Member member1 = jpaQueryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean isLoaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
+        assertThat(isLoaded).as("페치 조인 미적용").isFalse();
+    }
+
+    @Test
+    @DisplayName("페치 조인")
+    public void using_fetchJoin() {
+        em.flush();
+        em.clear();
+
+        Member member1 = jpaQueryFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin()
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        boolean isLoaded = emf.getPersistenceUnitUtil().isLoaded(member1.getTeam());
+        assertThat(isLoaded).as("페치 조인 적용").isTrue();
     }
 }
