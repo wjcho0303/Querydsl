@@ -3,6 +3,7 @@ package study.querydsl.entity;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -470,6 +471,35 @@ public class QuerydslBasicTest {
                         .when(member.age.between(0, 20)).then("0 - 20세")
                         .when(member.age.between(21, 30)).then("21 - 30세")
                         .otherwise("기타"))
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    @DisplayName("상수 예제")
+    public void constant() {
+        List<Tuple> result = jpaQueryFactory
+                .select(member.username, Expressions.constant("A"))
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    /**
+     * {username}_{age} 로 표시되는 컬럼 가져오기
+     */
+    @Test
+    @DisplayName("문자 더하기")
+    public void concat() {
+        List<String> result = jpaQueryFactory
+                .select(member.username.concat("_").concat(member.age.stringValue()))
                 .from(member)
                 .fetch();
 
