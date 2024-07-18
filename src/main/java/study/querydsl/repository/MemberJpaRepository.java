@@ -9,6 +9,8 @@ import study.querydsl.entity.Member;
 import java.util.List;
 import java.util.Optional;
 
+import static study.querydsl.entity.QMember.*;
+
 @Repository
 @RequiredArgsConstructor
 public class MemberJpaRepository {
@@ -34,5 +36,13 @@ public class MemberJpaRepository {
         return em.createQuery("select m from Member m where m.username = :username", Member.class)
                 .setParameter("username", username)
                 .getResultList();
+    }
+
+    // QueryDSL 활용
+    public List<Member> findByUsername_Querydsl(String username) {
+        return jpaQueryFactory
+                .selectFrom(member)
+                .where(member.username.eq(username))
+                .fetch();
     }
 }
