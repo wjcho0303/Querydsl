@@ -18,9 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import study.querydsl.dto.MemberDto;
-import study.querydsl.dto.UserDto;
-import study.querydsl.dto.UserMaxAgeDto;
+import study.querydsl.dto.*;
 
 import java.util.List;
 
@@ -623,6 +621,19 @@ public class QuerydslBasicTest {
 
         for (UserMaxAgeDto userMaxAgeDto : result) {
             System.out.println("userMaxAgeDto = " + userMaxAgeDto);
+        }
+    }
+
+    @Test
+    @DisplayName("@QueryProjection")
+    public void queryProjection() {
+        List<MemberQueryProjectionDto> result = jpaQueryFactory
+                .select(new QMemberQueryProjectionDto(member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberQueryProjectionDto memberQueryProjectionDto : result) {
+            System.out.println("memberQueryProjectionDto = " + memberQueryProjectionDto);
         }
     }
 }
