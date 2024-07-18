@@ -2,6 +2,8 @@ package study.querydsl.entity;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
@@ -16,13 +18,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.UserDto;
+import study.querydsl.dto.UserMaxAgeDto;
 
 import java.util.List;
 
+import static com.querydsl.core.types.Projections.*;
 import static com.querydsl.jpa.JPAExpressions.*;
 import static org.assertj.core.api.Assertions.*;
 import static study.querydsl.entity.QMember.*;
 import static study.querydsl.entity.QTeam.*;
+import static com.querydsl.core.types.ExpressionUtils.*;
 
 @SpringBootTest
 @Transactional
@@ -505,6 +512,117 @@ public class QuerydslBasicTest {
 
         for (String s : result) {
             System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    @DisplayName("단순 프로젝션")
+    public void projection_one() {
+        List<Member> result = jpaQueryFactory
+                .select(member)
+                .from(member)
+                .fetch();
+
+        for (Member member : result) {
+            System.out.println("member = " + member);
+        }
+    }
+    
+    @Test
+    @DisplayName("Tuple 프로젝션")
+    public void projection_tuple() {
+        List<Tuple> result = jpaQueryFactory
+                .select(member.username, member.age)
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            String username = tuple.get(member.username);
+            Integer age = tuple.get(member.age);
+
+            System.out.println("username: " + username + ", age: " + age);
+        }
+    }
+
+    @Test
+    @DisplayName("JPQL Dto 프로젝션")
+    public void projection_JPQL_dto() {
+        List<MemberDto> result =
+                em.createQuery("select new study.querydsl.dto.MemberDto(m.username, m.age) from Member m",
+                                MemberDto.class)
+                .getResultList();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    @Test
+    @DisplayName("Projections.bean()")
+    public void projection_Querydsl_dto1() {
+        List<MemberDto> result = jpaQueryFactory
+                .select(bean(MemberDto.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    @Test
+    @DisplayName("Projections.fields()")
+    public void projection_Querydsl_dto2() {
+        List<MemberDto> result = jpaQueryFactory
+                .select(fields(MemberDto.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    @Test
+    @DisplayName("Projections.constructor()")
+    public void projection_Querydsl_dto3() {
+        List<MemberDto> result = jpaQueryFactory
+                .select(constructor(MemberDto.class, member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
+        }
+    }
+
+    @Test
+    @DisplayName("field alias")
+    public void field_alias() {
+        List<UserDto> result = jpaQueryFactory
+                .select(constructor(UserDto.class, member.username.as("name"), member.age))
+                .from(member)
+                .fetch();
+
+        for (UserDto userDto : result) {
+            System.out.println("userDto = " + userDto);
+        }
+    }
+
+    @Test
+    @DisplayName("subQuery alias")
+    public void field_alias_subQuery() {
+        QMember sub_m = new QMember("sub_m");
+
+        List<UserMaxAgeDto> result = jpaQueryFactory
+                .select(constructor(UserMaxAgeDto.class, member.username.as("name"),
+                        as(select(sub_m.age.max())
+                                .from(sub_m), "max_age")))
+                .from(member)
+                .fetch();
+
+        for (UserMaxAgeDto userMaxAgeDto : result) {
+            System.out.println("userMaxAgeDto = " + userMaxAgeDto);
         }
     }
 }
