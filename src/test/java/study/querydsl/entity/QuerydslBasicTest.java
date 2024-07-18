@@ -754,4 +754,31 @@ public class QuerydslBasicTest {
             System.out.println("member = " + member);
         }
     }
+
+    @Test
+    @DisplayName("SQL function: replace")
+    public void sqlFunction() {
+        List<String> result = jpaQueryFactory
+                .select(Expressions.stringTemplate(
+                        "function('replace', {0}, {1}, {2})", member.username, "member", "M"))
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    @DisplayName("SQL function: upper")
+    public void sqlFunction2() {
+        List<String> result = jpaQueryFactory
+                .select(member.username.upper())
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
 }
