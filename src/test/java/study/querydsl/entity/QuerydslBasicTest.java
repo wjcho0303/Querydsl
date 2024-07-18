@@ -19,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.*;
 
@@ -696,5 +697,61 @@ public class QuerydslBasicTest {
         return ageCond == null ? null : member.age.eq(ageCond);
     }
 
+    @Test
+//    @Commit
+    @DisplayName("벌크 update")
+    public void bulkUpdate() {
+        long count = jpaQueryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+        em.clear();
 
+        List<Member> members = jpaQueryFactory
+                .selectFrom(member)
+                .fetch();
+
+        for (Member member : members) {
+            System.out.println("member = " + member);
+        }
+    }
+
+    @Test
+    @DisplayName("기존 값 변경 벌크 연산")
+    public void bulkAdd() {
+        jpaQueryFactory
+                .update(member)
+                .set(member.age, member.age.add(1))
+                .execute();
+        em.flush();
+        em.clear();
+        
+        List<Member> members = jpaQueryFactory
+                .selectFrom(member)
+                .fetch();
+
+        for (Member member1 : members) {
+            System.out.println("member1 = " + member1);
+        }
+    }
+    
+    @Test
+    @DisplayName("삭제 벌크 연산")
+    public void bulkDelete() {
+        jpaQueryFactory
+                .delete(member)
+                .where(member.age.in(10, 20))
+                .execute();
+        em.flush();
+        em.clear();
+        
+        List<Member> members = jpaQueryFactory
+                .selectFrom(member)
+                .fetch();
+
+        for (Member member : members) {
+            System.out.println("member = " + member);
+        }
+    }
 }
