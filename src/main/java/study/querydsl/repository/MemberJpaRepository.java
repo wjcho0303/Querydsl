@@ -1,16 +1,15 @@
 package study.querydsl.repository;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
 import study.querydsl.entity.Member;
-import study.querydsl.entity.QTeam;
 
 import java.util.List;
 import java.util.Optional;
@@ -84,4 +83,45 @@ public class MemberJpaRepository {
                 .where(builder)
                 .fetch();
     }
+
+    public List<MemberTeamDto> searchByWhereParam(MemberSearchCondition condition) {
+        return jpaQueryFactory
+                .select(new QMemberTeamDto(
+                        member.id.as("memberId"),
+                        member.username,
+                        member.age,
+                        team.id.as("teamId"),
+                        team.name.as("teamName")
+                ))
+                .from(member)
+                .leftJoin(member.team, team)
+                .where(usernameEq(condition.getUsername()),
+                        teamNameEq(condition.getTeamName()),
+                        ageGoe(condition.getAgeGoe()),
+                        ageLoe(condition.getAgeLoe()))
+                .fetch();
+    }
+
+    private BooleanExpression usernameEq(String usernameCond) {
+        return hasText(usernameCond) ? member.username.eq(usernameCond) : null;
+    }
+
+    private BooleanExpression teamNameEq(String teamNameCond) {
+        return hasText(teamNameCond) ? team.name.eq(teamNameCond) : null;
+    }
+
+    private BooleanExpression ageGoe(Integer ageGoeCond) {
+        return ageGoeCond != null ? member.age.goe(ageGoeCond) : null;
+    }
+
+    private BooleanExpression ageLoe(Integer ageLoeCond) {
+        return ageLoeCond != null ? member.age.loe(ageLoeCond) : null;
+    }
+
+    // 조건을 통합한 BooleanExpression
+    private BooleanExpression ageBetween(int ageLoe, int ageGoe) {
+        return ageGoe(ageGoe).and(ageLoe(ageLoe));
+    }
+
+
 }
