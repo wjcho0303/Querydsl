@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import study.querydsl.dto.MemberSearchCondition;
+import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.Team;
 
@@ -54,5 +56,17 @@ class MemberRepositoryTest {
 
         List<Member> result2 = repository.findByUsername("member5");
         assertThat(result2).containsExactly(member5);
+    }
+
+    @Test
+    public void searchByWhereParamTest() {
+        MemberSearchCondition condition = new MemberSearchCondition();
+        condition.setAgeGoe(35);
+        condition.setAgeLoe(40);
+        condition.setTeamName("teamB");
+
+        List<MemberTeamDto> result = repository.searchByWhereParam(condition);
+
+        assertThat(result).extracting("username").containsExactly("member4");
     }
 }
