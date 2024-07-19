@@ -22,7 +22,7 @@ class MemberRepositoryTest {
     EntityManager em;
 
     @Autowired
-    MemberJpaRepository repository;
+    MemberRepository repository;
 
     @BeforeEach
     public void before() {
