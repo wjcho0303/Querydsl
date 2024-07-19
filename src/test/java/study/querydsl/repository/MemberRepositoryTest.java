@@ -14,7 +14,6 @@ import study.querydsl.entity.Team;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -24,7 +23,7 @@ class MemberRepositoryTest {
     EntityManager em;
 
     @Autowired
-    MemberRepository repository;
+    MemberRepository memberRepository;
 
     @BeforeEach
     public void before() {
@@ -46,15 +45,15 @@ class MemberRepositoryTest {
     @Test
     public void basicTest() {
         Member member5 = new Member("member5", 10);
-        repository.save(member5);
+        memberRepository.save(member5);
 
-        Member findMember = repository.findById(member5.getId()).get();
+        Member findMember = memberRepository.findById(member5.getId()).get();
         assertThat(findMember).isEqualTo(member5);
 
-        List<Member> result1 = repository.findAll();
+        List<Member> result1 = memberRepository.findAll();
         assertThat(result1).contains(member5);
 
-        List<Member> result2 = repository.findByUsername("member5");
+        List<Member> result2 = memberRepository.findByUsername("member5");
         assertThat(result2).containsExactly(member5);
     }
 
@@ -65,7 +64,7 @@ class MemberRepositoryTest {
         condition.setAgeLoe(40);
         condition.setTeamName("teamB");
 
-        List<MemberTeamDto> result = repository.searchByWhereParam(condition);
+        List<MemberTeamDto> result = memberRepository.searchByWhereParam(condition);
 
         assertThat(result).extracting("username").containsExactly("member4");
     }
