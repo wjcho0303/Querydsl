@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
@@ -13,6 +15,7 @@ import study.querydsl.entity.Team;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -67,5 +70,17 @@ class MemberRepositoryTest {
         List<MemberTeamDto> result = memberRepository.searchByWhereParam(condition);
 
         assertThat(result).extracting("username").containsExactly("member4");
+    }
+
+    @Test
+    public void searchPageSimple() {
+        MemberSearchCondition condition = new MemberSearchCondition();
+        PageRequest pageRequest = PageRequest.of(0, 3);
+
+        Page<MemberTeamDto> result = memberRepository.searchPageSimple(condition, pageRequest);
+
+        assertThat(result.getSize()).isEqualTo(3);
+        assertThat(result.getContent()).extracting("username")
+                .containsExactly("member1", "member2", "member3");
     }
 }
